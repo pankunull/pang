@@ -19,33 +19,39 @@ version="0.1"
 
 
 if [ -z "$1" ]; then
-    printf "error: need destination IP (ipv4).\n\n"
+    printf "error: need destination IP (ipv4)\n\n"
     exit 1
 fi
 
  
-if [ -z "$2" ]; then
+
+if [ -n "$2" ]; then
+    if echo "$2" | grep -q -w "geo"; then
+        # Need to check if curl returns error or not
+        geodata="$(curl -s -4 -L --url https://ipinfo.io/"$1" | tr -d '"{},' | cut -d ' ' -f3- | head -n -1)"
+        
+        hostname="$(echo "$geodata" | grep hostname | cut -d ':' -f2-)"
+        city="$(echo "$geodata" | grep city | cut -d ':' -f2-)"
+        region="$(echo "$geodata" | grep region | cut -d ':' -f2-)"
+        country="$(echo "$geodata" | grep country | cut -d ':' -f2-)"
+        loc="$(echo "$geodata" | grep loc | cut -d ':' -f2-)"
+        org="$(echo "$geodata" | grep org | cut -d ':' -f2-)"
+        postal="$(echo "$geodata" | grep postal | cut -d ':' -f2-)"
+        timezone="$(echo "$geodata" | grep timezone | cut -d ':' -f2-)"
+    else
+        printf "error: wrong argument (geo)\n\n"
+        exit 1
+    fi
+fi
+
+
+
+if [ -z "$3" ]; then
     speed=0.1
 else
-    speed="$2"
+    speed="$3"
 fi
 
-
-if [ "$3" = "geo" ]; then
-    # Need to check if curl returns error or not
-    geodata="$(curl -s -4 -L --url https://ipinfo.io/"$1" | tr -d '"{},' | cut -d ' ' -f3- | head -n -1)"
-    
-    hostname="$(echo "$geodata" | grep hostname | cut -d ':' -f2-)"
-    city="$(echo "$geodata" | grep city | cut -d ':' -f2-)"
-    region="$(echo "$geodata" | grep region | cut -d ':' -f2-)"
-    country="$(echo "$geodata" | grep country | cut -d ':' -f2-)"
-    loc="$(echo "$geodata" | grep loc | cut -d ':' -f2-)"
-    org="$(echo "$geodata" | grep org | cut -d ':' -f2-)"
-    postal="$(echo "$geodata" | grep postal | cut -d ':' -f2-)"
-    timezone="$(echo "$geodata" | grep timezone | cut -d ':' -f2-)"
-
-    
-fi
 
 # Will have to check for correct IP
 destination="$1"
